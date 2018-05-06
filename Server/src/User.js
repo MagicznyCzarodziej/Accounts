@@ -27,17 +27,36 @@ module.exports = {
       const userJson = user.toJSON();
       const token = jwtSign(userJson);
       res.send({ token });
-    } catch (err) {
-      res.status(400).send({
+    } catch (error) {
+      console.log(error);
+      res.status(409).send({
         error: 'User already exists',
+      });
+    }
+  },
+  async login(req, res) {
+    try {
+      const { login, password } = req.body;
+      const user = await UserModel.findOne({ login }).exec();
+      if (!user) return res.status(401).send({ error: 'Incorrect login or password' });
+
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) return res.status(401).send({ error: 'Incorrect login or password' });
+
+      const userJson = user.toJSON();
+      const token = jwtSign(userJson);
+      res.send({ token });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        error: 'An error has occured trying to log in',
       });
     }
   },
   async authorize(req, res, next) {
     try {
       const token = req.headers.authorization;
-      const data = await jwt.verify(token, config.authentication.jwtSecret);
-      console.log(data);
+      await jwt.verify(token, config.authentication.jwtSecret);
       next();
     } catch (error) {
       res.status(403).send({ error: 'Forbidden' });

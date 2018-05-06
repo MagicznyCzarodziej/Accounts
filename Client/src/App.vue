@@ -1,13 +1,22 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
     <router-view/>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  beforeCreate() {
+    const token = localStorage.getItem('userToken');
+    if (token) {
+      this.$store.state.userToken = token;
+      this.$store.state.userLogin = localStorage.getItem('userLogin');
+      this.$store.state.isLoggedIn = true;
+
+      localStorage.setItem('isLoggedIn', true);
+    }
+  }
 }
 </script>
 
